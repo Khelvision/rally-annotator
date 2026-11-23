@@ -12,13 +12,17 @@ on:
 jobs:
   dialog-suite:
     name: Lua 5.1 headless dialog suite
-    runs-on: ${{ github.server_url == 'https://github.com' && 'ubuntu-latest' || 'ci-light' }}
+    runs-on: ci-heavy
     steps:
       - uses: actions/checkout@v4
 
       # Lua 5.1 is the exact interpreter VLC 3.x embeds, so test semantics match the player.
-      - name: Install Lua 5.1
-        run: sudo apt-get update && sudo apt-get install -y lua5.1
+      # The owned runner image supplies Lua before entering the offline CI boundary.
+      # Do not attempt package downloads from inside the job.
+      - name: Require preprovisioned Lua 5.1
+        run: |
+          lua5.1 -v
+          luac5.1 -v
 
       # Syntax gate: the extension and the test must parse. A scan-time syntax error is how
       # the extension silently failed to load in v1.3.1, so we fail fast and loudly here.
